@@ -21,7 +21,7 @@ const buildBlockingHostsLineFromUrl = (url: string) => {
 }
 
 const buildHostsSnippetToAppend = (urls: string[]) => {
-    return `\n${urls.map(buildBlockingHostsLineFromUrl).join("\n")}`;
+    return `\n\n${urls.map(buildBlockingHostsLineFromUrl).join("\n")}`;
 }
 
 
@@ -70,6 +70,7 @@ const overwriteHostsLastKnownHashFile = async (hostsFile: string) => {
     If the file has changed, it appends a list of sites to block to the hosts file and stores a new hash to use for future comparisons.
  */
 const blockSitesUsingHostFile = async () => {
+    console.log('Checking for changes ot hosts file.')
 
     const hostsFile: string = await fetchHostsFile();
     const hostsFileHashMatches: boolean = await compareHostsFileHashToLastKnownHash(hostsFile);
@@ -77,11 +78,14 @@ const blockSitesUsingHostFile = async () => {
     if(!hostsFileHashMatches) {
         console.log("Changes detected to hosts file. Appending list of blocked sites.")
         await appendBlockedSitesToHostsFile();
-        const updatedHostsFile = await fetchHostsLastKnownHashFile();
+        const updatedHostsFile = await fetchHostsFile();
         await overwriteHostsLastKnownHashFile(updatedHostsFile);
     }
+    else {
+        console.log("No changes detected to hosts file. No further action taken.")
+    }
 
-    console.log("No changes detected to hosts file. No further action taken.")
+    console.log("Finished processing hosts file.")
 };
 
 

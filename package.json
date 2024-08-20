@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "start": "npm run build && node dist/index.js",
     "build": "tsc",
     "initialize-framework": "exit 1",
     "test:integration": "mocha --recursive --extension .test.ts --timeout 600000 -r ts-node/register test/integration -r test/integration/setup/environments/local.ts"
