@@ -75,13 +75,13 @@ const blockSitesUsingHostFile = async () => {
     const hostsFileHashMatches: boolean = await compareHostsFileHashToLastKnownHash(hostsFile);
 
     if(!hostsFileHashMatches) {
-        console.log("Changes detected on hosts file.")
+        console.log("Changes detected to hosts file. Appending list of blocked sites.")
         await appendBlockedSitesToHostsFile();
         const updatedHostsFile = await fetchHostsLastKnownHashFile();
         await overwriteHostsLastKnownHashFile(updatedHostsFile);
     }
 
-    console.log("No changes detected on hosts file.")
+    console.log("No changes detected to hosts file. No further action taken.")
 };
 
 
