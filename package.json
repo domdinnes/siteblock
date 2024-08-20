@@ -9,7 +9,12 @@
     "initialize-framework": "exit 1",
     "test:integration": "mocha --recursive --extension .test.ts --timeout 600000 -r ts-node/register test/integration -r test/integration/setup/environments/local.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/md5": "^2.3.5",
+    "fs-extra": "^11.2.0",
+    "md5": "^2.3.0"
+  },
   "devDependencies": {
     "@types/chai": "^4.3.1",
     "@types/debug": "^4.1.10",
