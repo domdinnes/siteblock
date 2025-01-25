@@ -70,7 +70,7 @@ const overwriteHostsLastKnownHashFile = async (hostsFile: string) => {
     If the file has changed, it appends a list of sites to block to the hosts file and stores a new hash to use for future comparisons.
  */
 const blockSitesUsingHostFile = async () => {
-    console.log('Checking for changes ot hosts file.')
+    console.log('Checking for changes to hosts file.')
 
     const hostsFile: string = await fetchHostsFile();
     const hostsFileHashMatches: boolean = await compareHostsFileHashToLastKnownHash(hostsFile);
