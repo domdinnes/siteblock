@@ -25,5 +25,5 @@ export const enableLogging = (loggerType?: LoggerType) => {
 
 
 const getNamespace = (loggerType?: LoggerType) => {
-    return loggerType == undefined || loggerType == "default" ? "whisper-node" : loggerType;
+    return loggerType == undefined || loggerType == "default" ? "siteblock" : loggerType;
 }
