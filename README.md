@@ -1,5 +1,5 @@
 # siteblock
-Simple script which runs periodically to block productivity drains.
+Simple script intended to be run periodically to block productivity drains. 
 
 ## Setup
 
