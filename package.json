@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "build": "tsc",
-    "initialize-framework": "exit 1",
+    "setup": "npm run build && sudo node dist/setup.js",
     "test:integration": "mocha --recursive --extension .test.ts --timeout 600000 -r ts-node/register test/integration -r test/integration/setup/environments/local.ts"
   },
   "dependencies": {

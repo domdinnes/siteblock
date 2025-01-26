@@ -1,9 +1,12 @@
 import {readFile, writeFile} from "fs-extra";
 import md5 from "md5";
-import {appendFile} from "node:fs/promises";
+import {appendFile, stat} from "node:fs/promises";
+import {enableLogging, getLogger} from "./utility/logger";
+import {HOSTS_FILE_PATH, HOSTS_MD5_FILE_PATH} from "./utility/paths";
+import {Permission, REQUIRED_PERMISSION} from "./utility/permission";
 
-const HOSTS_FILE: string = "/etc/hosts";
-const LAST_KNOWN_HASH_FILE: string = "/etc/hosts.md5";
+const HOSTS_FILE: string = HOSTS_FILE_PATH;
+const LAST_KNOWN_HASH_FILE: string = HOSTS_MD5_FILE_PATH;
 
 const blockedSites: string[] = [
     "reddit.com",
@@ -21,7 +24,7 @@ const buildBlockingHostsLineFromUrl = (url: string) => {
 }
 
 const buildHostsSnippetToAppend = (urls: string[]) => {
-    return `\n\n${urls.map(buildBlockingHostsLineFromUrl).join("\n")}`;
+    return `\n# Blocked websites added by siteblock (https://github.com/domdinnes/siteblock)\n${urls.map(buildBlockingHostsLineFromUrl).join("\n")}\n`;
 }
 
 
@@ -65,28 +68,64 @@ const overwriteHostsLastKnownHashFile = async (hostsFile: string) => {
     await writeFile(LAST_KNOWN_HASH_FILE, Buffer.from(replacementHash, "utf-8"));
 }
 
+const checkFilesAndPermissionsExist = async () => {
+    let filesAndPermissionsExist: boolean;
+
+    try {
+        const hostsFileStats = await stat(HOSTS_FILE);
+        const hostsFilePermission = Permission.fromFileStats(hostsFileStats);
+
+        const hostMd5FileStats = await stat(HOSTS_MD5_FILE_PATH);
+        const hostMd5FilePermission = Permission.fromFileStats(hostMd5FileStats);
+
+        filesAndPermissionsExist = (
+            hostsFilePermission.matches(REQUIRED_PERMISSION)
+            && hostMd5FilePermission.matches(REQUIRED_PERMISSION)
+        )
+    }
+    catch (err) {
+        filesAndPermissionsExist = false;
+    }
+
+    return filesAndPermissionsExist;
+}
+
 /*
     Fetches existing host file and computes the hash of this host file to check for changes, comparing against the last known hash of the file.
     If the file has changed, it appends a list of sites to block to the hosts file and stores a new hash to use for future comparisons.
  */
 const blockSitesUsingHostFile = async () => {
-    console.log('Checking for changes to hosts file.')
+    Logger.log('Checking for changes to hosts file.')
 
     const hostsFile: string = await fetchHostsFile();
     const hostsFileHashMatches: boolean = await compareHostsFileHashToLastKnownHash(hostsFile);
 
     if(!hostsFileHashMatches) {
-        console.log("Changes detected to hosts file. Appending list of blocked sites.")
+        Logger.log("Changes detected to hosts file. Appending list of blocked sites.")
         await appendBlockedSitesToHostsFile();
         const updatedHostsFile = await fetchHostsFile();
         await overwriteHostsLastKnownHashFile(updatedHostsFile);
     }
     else {
-        console.log("No changes detected to hosts file. No further action taken.")
+        Logger.log("No changes detected to hosts file. No further action taken.")
     }
 
-    console.log("Finished processing hosts file.")
+    Logger.log("Finished processing hosts file.")
 };
 
+const main = async () => {
+    // File permissions exist
+    const filesAndPermissionsExist = await checkFilesAndPermissionsExist();
 
-blockSitesUsingHostFile().then();
+    if(!filesAndPermissionsExist) {
+        Logger.log("Necessary files and permissions don't exist. Please run the following command: `npm run setup`")
+        return;
+    }
+
+    await blockSitesUsingHostFile();
+    // Block sites
+};
+
+enableLogging();
+const Logger= getLogger("default")
+main().then(() => {});
