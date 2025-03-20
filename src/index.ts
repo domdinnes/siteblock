@@ -4,32 +4,31 @@ import {appendFile, stat} from "node:fs/promises";
 import {enableLogging, getLogger} from "./utility/logger";
 import {HOSTS_FILE_PATH, HOSTS_MD5_FILE_PATH} from "./utility/paths";
 import {Permission, REQUIRED_PERMISSION} from "./utility/permission";
+import {BLOCKED_SITES} from "./blocked-sites";
 
 const HOSTS_FILE: string = HOSTS_FILE_PATH;
 const LAST_KNOWN_HASH_FILE: string = HOSTS_MD5_FILE_PATH;
 
-const blockedSites: string[] = [
-    "reddit.com",
-    "old.reddit.com",
-    "www.reddit.com",
-    "https://www.reddit.com",
-    "news.ycombinator.com",
-    "youtube.com",
-    "www.youtube.com",
-    "news.google.com"
-]
+const buildVariationsForUrl = (url: string): string[] => {
+    return [
+        `${url}`,
+        `https://${url}`,
+        `www.${url}`,
+        `https://www.${url}`
+    ];
+}
 
 const buildBlockingHostsLineFromUrl = (url: string) => {
     return `127.0.0.1       ${url}`;
 }
 
 const buildHostsSnippetToAppend = (urls: string[]) => {
-    return `\n# Blocked websites added by siteblock (https://github.com/domdinnes/siteblock)\n${urls.map(buildBlockingHostsLineFromUrl).join("\n")}\n`;
+    return `\n# Blocked websites added by siteblock (https://github.com/domdinnes/siteblock)\n${urls.flatMap(buildVariationsForUrl).map(buildBlockingHostsLineFromUrl).join("\n")}\n`;
 }
 
 
 const appendBlockedSitesToHostsFile = async () => {
-    const blockSnippet = buildHostsSnippetToAppend(blockedSites);
+    const blockSnippet = buildHostsSnippetToAppend(BLOCKED_SITES);
     await appendFile(HOSTS_FILE, blockSnippet);
 }
 
